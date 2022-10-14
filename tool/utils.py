@@ -94,6 +94,26 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
     
     return np.array(keep)
 
+def plot_boxes_pil(img, boxes, savename=None, class_names=None, color=None):
+    from PIL import Image, ImageDraw
+    img_draw = ImageDraw.Draw(img)  
+
+    width,height = img.size
+
+    for i in range(len(boxes)):
+        box = boxes[i]
+        x1 = int(box[0] * width)
+        y1 = int(box[1] * height)
+        x2 = int(box[2] * width)
+        y2 = int(box[3] * height)
+        bbox_thick = int((height + width) / 500.0)
+       
+        shape = [(x1, y1), (x2, y2)]
+        img_draw.rectangle(shape, outline ="green", width=bbox_thick)
+    if savename:
+        print("save plot results to %s" % savename)
+        img.save(savename)
+    return img
 
 
 def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
