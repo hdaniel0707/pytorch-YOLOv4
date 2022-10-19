@@ -94,25 +94,48 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
     
     return np.array(keep)
 
-def plot_boxes_pil(img, boxes, savename=None, class_names=None, color=None):
-    from PIL import Image, ImageDraw
+def plot_boxes_pil(img, detections, color_list, class_names=None, verbose = False):
+    from PIL import Image, ImageDraw, ImageFont
     img_draw = ImageDraw.Draw(img)  
-
     width,height = img.size
+    bbox_thick = int((height + width) / 500.0)
+    fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", 20)
 
-    for i in range(len(boxes)):
-        box = boxes[i]
-        x1 = int(box[0] * width)
-        y1 = int(box[1] * height)
-        x2 = int(box[2] * width)
-        y2 = int(box[3] * height)
-        bbox_thick = int((height + width) / 500.0)
-       
+    for detection in detections.detections:
+        if verbose:
+            print("######################")
+            print(detection.bbox.center.x)
+            print(detection.bbox.center.y)
+            print(detection.bbox.center.theta)
+            print(detection.bbox.size_x)
+            print(detection.bbox.size_y)
+
+        for i in range(len(detection.results)):
+            if verbose:
+                print("-------------------")
+                print(i)
+                print(detection.results[i].id)
+                print(detection.results[i].score)
+        
+        x1 = int((detection.bbox.center.x - detection.bbox.size_x / 2.0)* width)
+        y1 = int((detection.bbox.center.y - detection.bbox.size_y / 2.0)* height)
+        x2 = int((detection.bbox.center.x + detection.bbox.size_x / 2.0)* width)
+        y2 = int((detection.bbox.center.y + detection.bbox.size_y / 2.0)* height)
+
+
+        color = color_list[detection.results[i].id%len(color_list)]
+
         shape = [(x1, y1), (x2, y2)]
-        img_draw.rectangle(shape, outline ="green", width=bbox_thick)
-    if savename:
-        print("save plot results to %s" % savename)
-        img.save(savename)
+        img_draw.rectangle(shape, outline =color, width=bbox_thick)
+
+        if class_names:
+            class_name = class_names[detection.results[i].id]            
+
+            shape = [(x1, max(0,y1-20)), (x1 + len(class_name) * 15, y1)]
+            img_draw.rectangle(shape, outline =color, fill = color, width=bbox_thick)
+    
+            img_draw.text((min(x1 + 5, width-1), max(0,y1-20)), class_name, font=fnt, fill="black")
+
     return img
 
 
